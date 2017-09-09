@@ -21,9 +21,6 @@ import javax.validation.Valid;
 import sample.web.ui.Message;
 import sample.web.ui.MessageRepository;
 
-import org.springframework.metrics.annotation.Timed;
-//import org.springframework.metrics.annotation.Timed;
-//import org.springframework.metrics.boot.EnableMetrics;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -34,12 +31,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import io.micrometer.core.annotation.Timed;
+
 /**
  * @author Rob Winch
  * @author Doo-Hwan Kwak
  */
 @Controller
-@Timed
+@Timed(percentiles = true)
 @RequestMapping("/")
 public class MessageController {
 

@@ -16,23 +16,20 @@
 
 package sample.web.ui;
 
+import javax.servlet.http.HttpServlet;
+
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.security.SecurityAutoConfiguration;
+import org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.convert.converter.Converter;
-//import org.springframework.metrics.boot.EnableMetrics;
-//import org.springframework.metrics.export.prometheus.EnablePrometheusMetrics;
-//import org.springframework.metrics.instrument.MeterRegistry;
-//import org.springframework.metrics.instrument.prometheus.PrometheusMeterRegistry;
-import org.springframework.metrics.boot.EnableMetrics;
-import org.springframework.metrics.export.prometheus.EnablePrometheusMetrics;
+import org.springframework.boot.context.embedded.tomcat.TomcatConnectorCustomizer;
+import org.apache.catalina.Executor;
+import org.apache.coyote.http11.AbstractHttp11Protocol;
 
 @SpringBootApplication
-@EnableMetrics
-@EnablePrometheusMetrics
 public class SampleWebUiApplication {
-
+	
 	@Bean
 	public MessageRepository messageRepository() {
 		return new InMemoryMessageRepository();
@@ -47,11 +44,31 @@ public class SampleWebUiApplication {
 			}
 		};
 	}
-//	@Bean
-//	public MeterRegistry meterRegistry() { return new PrometheusMeterRegistry(); }
-	
+		
+    @Bean
+    public TomcatEmbeddedServletContainerFactory tomcatEmbedded() {
+
+        TomcatEmbeddedServletContainerFactory tomcat = new TomcatEmbeddedServletContainerFactory();
+
+        
+        
+        tomcat.addConnectorCustomizers((TomcatConnectorCustomizer) connector -> {
+
+            // connector other settings...
+        	java.util.concurrent.Executor x = connector.getProtocolHandler().getExecutor();
+        	Executor y = connector.getService().getExecutor("Tomcat");
+            // configure maxSwallowSize
+            if ((connector.getProtocolHandler() instanceof AbstractHttp11Protocol<?>)) {
+                // -1 means unlimited, accept bytes
+                ((AbstractHttp11Protocol<?>) connector.getProtocolHandler()).setMaxSwallowSize(-1);
+            }
+
+        });
+
+        return tomcat;
+    }
+
 	public static void main(String[] args) throws Exception {
 		SpringApplication.run(SampleWebUiApplication.class, args);
 	}
-
 }
