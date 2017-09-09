@@ -16,18 +16,19 @@
 
 package sample.web.ui;
 
-import javax.servlet.http.HttpServlet;
-
+import io.micrometer.spring.MeterRegistryConfigurer;
+import io.micrometer.spring.export.prometheus.EnablePrometheusMetrics;
+import org.apache.catalina.Executor;
+import org.apache.coyote.http11.AbstractHttp11Protocol;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.embedded.tomcat.TomcatConnectorCustomizer;
 import org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.convert.converter.Converter;
-import org.springframework.boot.context.embedded.tomcat.TomcatConnectorCustomizer;
-import org.apache.catalina.Executor;
-import org.apache.coyote.http11.AbstractHttp11Protocol;
 
 @SpringBootApplication
+@EnablePrometheusMetrics
 public class SampleWebUiApplication {
 	
 	@Bean
@@ -45,6 +46,11 @@ public class SampleWebUiApplication {
 		};
 	}
 		
+	@Bean
+    MeterRegistryConfigurer configurer() {
+      return registry -> registry.config().commonTags("region", "us-east-1");
+    }
+	
     @Bean
     public TomcatEmbeddedServletContainerFactory tomcatEmbedded() {
 
