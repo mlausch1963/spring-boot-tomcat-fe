@@ -38,7 +38,7 @@ import io.micrometer.core.annotation.Timed;
  * @author Doo-Hwan Kwak
  */
 @Controller
-@Timed(percentiles = true)
+@Timed()
 @RequestMapping("/")
 public class MessageController {
 

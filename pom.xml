@@ -20,8 +20,8 @@
 		<main.basedir>${basedir}/../..</main.basedir>
 		<java.version>1.8</java.version>
 		<maven.test.skip>true</maven.test.skip>
-		<micrometer.version>0.11.0-dev.22.uncommitted+5ba0b88</micrometer.version>
-		<!-- <micrometer.version>0.10.0-dev.24.uncommitted+a3b955c</micrometer.version> -->
+		<!-- <micrometer.version>0.11.0-dev.22.uncommitted+5ba0b88</micrometer.version> -->
+		<micrometer.version>0.10.0.RELEASE</micrometer.version>
 	</properties>
 	<dependencies>
 		<!-- Compile -->
