@@ -19,17 +19,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.binder.MeterBinder;
+import io.micrometer.core.instrument.Gauge;
 import io.prometheus.client.GaugeMetricFamily;
 
 
 public class ThreadPoolMetrics implements MeterBinder {
-	
-	
+
+	private class ConstOne{
+		public long value() { return 1;}
+	};
+
 	final String jmxDomain = "Tomcat";
 	final MBeanServer server = ManagementFactory.getPlatformMBeanServer();
 	private ThreadPoolExecutor executor;
-	
-	
+	private ConstOne one = new ConstOne();
+
+
 	private class ThreadPoolBean {
 		ObjectInstance bean;
 		
@@ -78,38 +83,13 @@ public class ThreadPoolMetrics implements MeterBinder {
 
 	@Override
 	public void bindTo(MeterRegistry registry) {
-		registry.gaugeBuilder("tomcat_threads_max_pool_size", executor, (e) -> e.getMaximumPoolSize()).create();
-		registry.gaugeBuilder("tomcat_threads_core_pool_size", executor, (e) -> e.getCorePoolSize()).create();
-		registry.gaugeBuilder("tomcat_threads_active_count", executor, (e) -> e.getActiveCount()).create();
-		registry.gaugeBuilder("tomcat_threads_queue_size", executor, (e) -> e.getQueue().size()).create();
-		
-		
-		
-		// TODO Auto-generated method stub
-		/*
-		final MBeanServer server = ManagementFactory.getPlatformMBeanServer();
-        ObjectName filterName;
-		try {
-			filterName = new ObjectName(jmxDomain + ":type=ThreadPool,name=*");
-		
-			Set<ObjectInstance> mBeans = server.queryMBeans(filterName, null);
+		Gauge.builder("tomcat_threads_max_pool_size", executor, (e) -> e.getMaximumPoolSize()).register(registry);
+		Gauge.builder("tomcat_threads_core_pool_size", executor, (e) -> e.getCorePoolSize()).register(registry);
+		Gauge.builder("tomcat_threads_active_count", executor, (e) -> e.getActiveCount()).register(registry);
+		Gauge.builder("tomcat_threads_queue_size", executor, (e) -> e.getQueue().size()).register(registry);
 
-			if (mBeans.size() > 0) {
-            
-				List<String> labelList = Collections.singletonList("name");
-            
-				for (final ObjectInstance mBean : mBeans) {
-					List<String> labelValueList = Collections.singletonList(mBean.getObjectName().getKeyProperty("name").replaceAll("[\"\\\\]", ""));
-					ThreadPoolBean tpb = new ThreadPoolBean(mBean);
-					registry.gaugeBuilder("tomcat_threads_total", tpb, (c) -> c.getCurrentThreadCount()).create();
-					
-					registry.gaugeBuilder("tomcat_threads_count", tpb, (c) -> c.getBusyThreadCount()).create();
-				}
-			}
-		} catch (MalformedObjectNameException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		*/
+		Gauge.builder("version", one, one-> one.value())
+				.tags("branch", "rel-1.0.0")
+				.register(registry);
 	}
 }

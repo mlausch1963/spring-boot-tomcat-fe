@@ -16,19 +16,13 @@
 
 package sample.web.ui;
 
-import io.micrometer.spring.MeterRegistryConfigurer;
-import io.micrometer.spring.export.prometheus.EnablePrometheusMetrics;
-import org.apache.catalina.Executor;
-import org.apache.coyote.http11.AbstractHttp11Protocol;
+import io.micrometer.spring.autoconfigure.MeterRegistryConfigurer;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.context.embedded.tomcat.TomcatConnectorCustomizer;
-import org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.convert.converter.Converter;
 
 @SpringBootApplication
-@EnablePrometheusMetrics
 public class SampleWebUiApplication {
 	
 	@Bean
@@ -45,34 +39,7 @@ public class SampleWebUiApplication {
 			}
 		};
 	}
-		
-	@Bean
-    MeterRegistryConfigurer configurer() {
-      return registry -> registry.config().commonTags("region", "us-east-1");
-    }
-	
-    @Bean
-    public TomcatEmbeddedServletContainerFactory tomcatEmbedded() {
 
-        TomcatEmbeddedServletContainerFactory tomcat = new TomcatEmbeddedServletContainerFactory();
-
-        
-        
-        tomcat.addConnectorCustomizers((TomcatConnectorCustomizer) connector -> {
-
-            // connector other settings...
-        	java.util.concurrent.Executor x = connector.getProtocolHandler().getExecutor();
-        	Executor y = connector.getService().getExecutor("Tomcat");
-            // configure maxSwallowSize
-            if ((connector.getProtocolHandler() instanceof AbstractHttp11Protocol<?>)) {
-                // -1 means unlimited, accept bytes
-                ((AbstractHttp11Protocol<?>) connector.getProtocolHandler()).setMaxSwallowSize(-1);
-            }
-
-        });
-
-        return tomcat;
-    }
 
 	public static void main(String[] args) throws Exception {
 		SpringApplication.run(SampleWebUiApplication.class, args);

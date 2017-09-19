@@ -1,5 +1,7 @@
 /target/
 .project
+/.idea/
 /.settings/
 /tmp/
+spring-boot-sample-web-ui.iml
 
