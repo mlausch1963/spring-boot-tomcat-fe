@@ -26,8 +26,8 @@ import org.springframework.core.convert.converter.Converter;
 public class SampleWebUiApplication {
 	
 	@Bean
-	public MessageRepository messageRepository() {
-		return new InMemoryMessageRepository();
+    public MessageRepository messageRepository() {
+        return new InMemoryMessageRepository();
 	}
 
 	@Bean
@@ -40,6 +40,10 @@ public class SampleWebUiApplication {
 		};
 	}
 
+    @Bean
+    public ThreadPoolMetrics threadPoolMetrics() {
+        return new ThreadPoolMetrics();
+    }
 
 	public static void main(String[] args) throws Exception {
 		SpringApplication.run(SampleWebUiApplication.class, args);
