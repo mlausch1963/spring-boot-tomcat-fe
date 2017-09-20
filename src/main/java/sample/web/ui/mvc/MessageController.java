@@ -18,20 +18,21 @@ package sample.web.ui.mvc;
 
 import javax.validation.Valid;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 import sample.web.ui.Message;
 import sample.web.ui.MessageRepository;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import io.micrometer.core.annotation.Timed;
+import org.apache.commons.math3.distribution.ParetoDistribution;
+
+import java.util.logging.Logger;
 
 /**
  * @author Rob Winch
@@ -43,10 +44,12 @@ import io.micrometer.core.annotation.Timed;
 public class MessageController {
 
 	private final MessageRepository messageRepository;
+    private ParetoDistribution paretoGenerator = new ParetoDistribution(0.005, 6);
+    static Logger logger = Logger.getLogger(MessageController.class.getName());
 
-	public MessageController(MessageRepository messageRepository) {
-		this.messageRepository = messageRepository;
-	}
+    public MessageController(MessageRepository messageRepository) {
+        this.messageRepository = messageRepository;
+    }
 
 	@GetMapping
 	public ModelAndView list() {
@@ -94,4 +97,33 @@ public class MessageController {
 		return new ModelAndView("messages/form", "message", message);
 	}
 
+    @GetMapping(value = "doit")
+    public ResponseEntity<?> doit(@RequestParam(defaultValue = "0.99") Double reliability,
+                                  @RequestParam(defaultValue = "0") Long megabytes) {
+        double failureProbability = Math.random();
+        if (failureProbability > reliability) {
+            return new ResponseEntity<>("FAIL", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        byte[] mem = new byte[(int) (megabytes * 1024 * 1024)];
+        for (int i = 0; i < megabytes; i++) {
+            mem[i] = (byte) 0xff;
+        }
+        double time = paretoGenerator.sample();
+
+        time *= 1000.0;
+
+        if (time > 4000.0) {
+            time = 4000.0;
+        }
+        try {
+            Thread.sleep((long) time);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        for (int i = 0; i < megabytes; i++) {
+            mem[i] = 0x00;
+        }
+        return new ResponseEntity<>("OK", HttpStatus.OK);
+    }
 }
