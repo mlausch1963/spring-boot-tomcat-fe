@@ -4,8 +4,10 @@ import java.lang.management.ManagementFactory;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Logger;
 
 import javax.management.AttributeNotFoundException;
 import javax.management.InstanceNotFoundException;
@@ -16,6 +18,7 @@ import javax.management.ObjectInstance;
 import javax.management.ObjectName;
 import javax.management.ReflectionException;
 
+import io.micrometer.core.instrument.Counter;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import io.micrometer.core.instrument.MeterRegistry;
@@ -23,8 +26,9 @@ import io.micrometer.core.instrument.binder.MeterBinder;
 import io.micrometer.core.instrument.Gauge;
 
 
-public class ThreadPoolMetrics implements MeterBinder {
+public class ThreadPoolMetrics implements MeterBinder, RejectedExecutionHandler {
 
+    static Logger logger = Logger.getLogger("ThreadPoolMetric");
     private MeterRegistry registry;
     private ThreadPoolExecutor executor;
 
@@ -33,18 +37,18 @@ public class ThreadPoolMetrics implements MeterBinder {
     private Gauge corePoolSize;
     private Gauge queueSize;
     private Gauge version;
+    private Counter rejectCount;
 
 
     public ThreadPoolMetrics() {
 
     }
 
-	public ThreadPoolMetrics(ThreadPoolExecutor tpe) {
-		this.executor = tpe;
-	}
-
     public void setExecutor(ThreadPoolExecutor executor) {
         this.executor = executor;
+        this.executor.setRejectedExecutionHandler(this);
+        this.executor.setCorePoolSize(5);
+        this.executor.setMaximumPoolSize(200);
     }
 
     // We need this getters also for the healthz checks.
@@ -77,7 +81,7 @@ public class ThreadPoolMetrics implements MeterBinder {
     }
 
 	@Override
-	public void bindTo(MeterRegistry registry) {
+    public void bindTo(MeterRegistry registry) {
         maxPoolSize = Gauge.builder("tomcat_threads_max_pool_size", this, ThreadPoolMetrics::getMaximumPoolSize)
                 .baseUnit("count")
                 .description("The maximum allowed number of threads.")
@@ -100,7 +104,16 @@ public class ThreadPoolMetrics implements MeterBinder {
 
         version = Gauge.builder("version", 1, Number::doubleValue)
                 .tags("branch", "rel-1.0.0")
-				.register(registry);
+                .register(registry);
 
+        rejectCount = Counter.builder("tomcat_threads_rejected")
+                .baseUnit("count")
+                .description("The number of thread executions dropped")
+                .register(registry);
+    }
+
+    @Override
+    public void rejectedExecution(Runnable runnable, ThreadPoolExecutor threadPoolExecutor) {
+        rejectCount.increment();
     }
 }
