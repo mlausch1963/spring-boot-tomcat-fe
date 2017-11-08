@@ -87,7 +87,7 @@ public class MessageControllerWebTests {
 			this.regex = regex;
 		}
 
-		public static org.hamcrest.Matcher<java.lang.String> matches(String regex) {
+		static org.hamcrest.Matcher<java.lang.String> matches(String regex) {
 			return new RegexMatcher(regex);
 		}
 

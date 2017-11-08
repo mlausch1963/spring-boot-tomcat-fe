@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 public class ThreadPoolHealthIndicator implements HealthIndicator {
 
     @Autowired
-    private ThreadPoolMetrics metrics;
+    private ExecutorMetrics metrics;
 
     @Override
     public Health health() {

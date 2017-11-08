@@ -1,46 +1,25 @@
 package sample.web.ui;
 
-import java.lang.management.ManagementFactory;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
-import javax.management.AttributeNotFoundException;
-import javax.management.InstanceNotFoundException;
-import javax.management.MBeanException;
-import javax.management.MBeanServer;
-import javax.management.MalformedObjectNameException;
-import javax.management.ObjectInstance;
-import javax.management.ObjectName;
-import javax.management.ReflectionException;
-
 import io.micrometer.core.instrument.Counter;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.binder.MeterBinder;
 import io.micrometer.core.instrument.Gauge;
 
 
-public class ThreadPoolMetrics implements MeterBinder, RejectedExecutionHandler {
+public class TomcatThreadPoolMetrics implements MeterBinder, ExecutorMetrics {
 
     static Logger logger = Logger.getLogger("ThreadPoolMetric");
     private MeterRegistry registry;
     private ThreadPoolExecutor executor;
 
-    private Gauge activeCount;
-    private Gauge maxPoolSize;
-    private Gauge corePoolSize;
-    private Gauge queueSize;
-    private Gauge version;
     private Counter rejectCount;
 
 
-    public ThreadPoolMetrics() {
+    public TomcatThreadPoolMetrics() {
 
     }
 
@@ -82,27 +61,27 @@ public class ThreadPoolMetrics implements MeterBinder, RejectedExecutionHandler 
 
 	@Override
     public void bindTo(MeterRegistry registry) {
-        maxPoolSize = Gauge.builder("tomcat_threads_max_pool_size", this, ThreadPoolMetrics::getMaximumPoolSize)
+        Gauge maxPoolSize = Gauge.builder("tomcat_threads_max_pool_size", this, TomcatThreadPoolMetrics::getMaximumPoolSize)
                 .baseUnit("count")
                 .description("The maximum allowed number of threads.")
                 .register(registry);
 
-        corePoolSize = Gauge.builder("tomcat_threads_core_pool_size", this, ThreadPoolMetrics::getCorePoolSize)
+        Gauge corePoolSize = Gauge.builder("tomcat_threads_core_pool_size", this, TomcatThreadPoolMetrics::getCorePoolSize)
                 .baseUnit("count")
                 .description("The number of threads to keep in the pool, even if they are idle.")
                 .register(registry);
 
-        activeCount = Gauge.builder("tomcat_threads_active_count", this, ThreadPoolMetrics::getActiveCount)
+        Gauge activeCount = Gauge.builder("tomcat_threads_active_count", this, TomcatThreadPoolMetrics::getActiveCount)
                 .baseUnit("count")
                 .description("The approximate number of threads that are actively executing tasks.")
                 .register(registry);
 
-        queueSize = Gauge.builder("tomcat_threads_queue_size", this, ThreadPoolMetrics::getQueueLength)
+        Gauge queueSize = Gauge.builder("tomcat_threads_queue_size", this, TomcatThreadPoolMetrics::getQueueLength)
                 .baseUnit("count")
                 .description("The number of tasks queued, because no thread available")
                 .register(registry);
 
-        version = Gauge.builder("version", 1, Number::doubleValue)
+        Gauge version = Gauge.builder("version", 1, Number::doubleValue)
                 .tags("branch", "rel-1.0.0")
                 .register(registry);
 

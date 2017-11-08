@@ -23,7 +23,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.core.convert.converter.Converter;
 
 @SpringBootApplication
-public class SampleWebUiApplication {
+class SampleWebUiApplication {
 	
 	@Bean
     public MessageRepository messageRepository() {
@@ -41,9 +41,9 @@ public class SampleWebUiApplication {
 	}
 
     @Bean
-    public ThreadPoolMetrics threadPoolMetrics() {
-        return new ThreadPoolMetrics();
-    }
+	public ExecutorMetrics threadPoolMetrics() {
+		return new TomcatThreadPoolMetrics();
+	}
 
 	public static void main(String[] args) throws Exception {
 		SpringApplication.run(SampleWebUiApplication.class, args);

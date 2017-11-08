@@ -39,15 +39,15 @@ import java.util.logging.Logger;
  * @author Doo-Hwan Kwak
  */
 @Controller
-@Timed()
+@Timed(quantiles = {0.5, 0.75, 0.95, 0.99})
 @RequestMapping("/")
-public class MessageController {
+class MessageController {
 
 	private final MessageRepository messageRepository;
-    private ParetoDistribution paretoGenerator = new ParetoDistribution(0.005, 6);
+    private final ParetoDistribution paretoGenerator = new ParetoDistribution(0.005, 6);
     static Logger logger = Logger.getLogger(MessageController.class.getName());
 
-    public MessageController(MessageRepository messageRepository) {
+    private MessageController(MessageRepository messageRepository) {
         this.messageRepository = messageRepository;
     }
 
@@ -62,11 +62,12 @@ public class MessageController {
 		return new ModelAndView("messages/view", "message", message);
 	}
 
-	@GetMapping(params = "form")
+    @SuppressWarnings("SameReturnValue")
+    @GetMapping(params = "form")
 //	@Timed(value = "long_create_form", longTask = true)
-	public String createForm(@ModelAttribute Message message) {
-		return "messages/form";
-	}
+    public String createForm(@ModelAttribute Message message) {
+        return "messages/form";
+    }
 
 	@PostMapping
 //	@Timed(value = "long_create", longTask = true)
@@ -105,7 +106,7 @@ public class MessageController {
             return new ResponseEntity<>("FAIL", HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
-        byte[] mem = new byte[(int) (megabytes * 1024 * 1024)];
+        @SuppressWarnings("MismatchedReadAndWriteOfArray") byte[] mem = new byte[(int) (megabytes * 1024 * 1024)];
         for (int i = 0; i < megabytes; i++) {
             mem[i] = (byte) 0xff;
         }
