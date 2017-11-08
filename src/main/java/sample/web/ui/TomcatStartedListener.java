@@ -4,14 +4,17 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ThreadPoolExecutor;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.context.embedded.EmbeddedServletContainerInitializedEvent;
 import org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainer;
+import org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedWebappClassLoader;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
 
 import io.micrometer.core.instrument.MeterRegistry;
 
 @Component
+@ConditionalOnClass(TomcatEmbeddedWebappClassLoader.class)
 public class TomcatStartedListener implements ApplicationListener<EmbeddedServletContainerInitializedEvent> {
 
 	@Autowired
