@@ -16,36 +16,43 @@
 
 package sample.web.ui;
 
-import io.micrometer.spring.autoconfigure.MeterRegistryConfigurer;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.embedded.tomcat.TomcatConnectorCustomizer;
+import org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainerFactory;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.core.convert.converter.Converter;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.logging.Logger;
 
 @SpringBootApplication
-class SampleWebUiApplication {
-	
-	@Bean
-    public MessageRepository messageRepository() {
-        return new InMemoryMessageRepository();
-	}
+@ComponentScan(basePackages = {"sample.web.ui", "at.lausch.kubernetes.citizen"})
+public class SampleWebUiApplication {
 
-	@Bean
-	public Converter<String, Message> messageConverter() {
-		return new Converter<String, Message>() {
-			@Override
-			public Message convert(String id) {
-				return messageRepository().findMessage(Long.valueOf(id));
-			}
-		};
-	}
+    static Logger logger = Logger.getLogger(SampleWebUiApplication.class.getName());
 
     @Bean
-	public ExecutorMetrics threadPoolMetrics() {
-		return new TomcatThreadPoolMetrics();
-	}
+    public MessageRepository messageRepository()
+    {
+        InMemoryMessageRepository repo = new InMemoryMessageRepository();
+        logger.warning(String.format("Created new msg repo: %s", repo));
+        return repo;
+    }
 
-	public static void main(String[] args) throws Exception {
-		SpringApplication.run(SampleWebUiApplication.class, args);
-	}
+    @Bean
+    public Converter<String, Message> messageConverter() {
+        return new Converter<String, Message>() {
+            @Override
+            public Message convert(String id) {
+                return messageRepository().findMessage(Long.valueOf(id));
+            }
+        };
+    }
+
+    public static void main(String[] args) throws Exception {
+        SpringApplication.run(SampleWebUiApplication.class, args);
+    }
 }

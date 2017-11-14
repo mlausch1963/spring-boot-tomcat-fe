@@ -8,6 +8,15 @@ Example Web frontend for Kubernetes/Openshift. It contains
 
  - Prometheus monitoring.
 
+For tomcat:
+
+Using a connectorcustomizer to manipulate the Executor does not work
+
+  - When the customizer is called, there is no executor
+  - You cannot set a custom executor
+
+So we use a spring boot event to fix the executor after the embedded container has been initialized.
+
 
 
 https://stackoverflow.com/questions/17710701/how-to-restrict-access-to-certain-urls-a-specific-port

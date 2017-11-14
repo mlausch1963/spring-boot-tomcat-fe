@@ -18,6 +18,7 @@ package sample.web.ui.mvc;
 
 import javax.validation.Valid;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -37,17 +38,22 @@ import java.util.logging.Logger;
 /**
  * @author Rob Winch
  * @author Doo-Hwan Kwak
+ * @author Michael Lausch
+ * A Controller class with a doit method which allows to create specific
+ * error rates and delays.
  */
 @Controller
 @Timed(quantiles = {0.5, 0.75, 0.95, 0.99})
 @RequestMapping("/")
 class MessageController {
 
-	private final MessageRepository messageRepository;
+	@Autowired
+    private final MessageRepository messageRepository;
+
     private final ParetoDistribution paretoGenerator = new ParetoDistribution(0.005, 6);
     static Logger logger = Logger.getLogger(MessageController.class.getName());
 
-    private MessageController(MessageRepository messageRepository) {
+    public MessageController(MessageRepository messageRepository) {
         this.messageRepository = messageRepository;
     }
 
@@ -98,6 +104,17 @@ class MessageController {
 		return new ModelAndView("messages/form", "message", message);
 	}
 
+    /**
+     *
+     * @param reliability from 0 to 1. 0 means 0% success, 1 means 100% success.
+     * @param megabytes Allocate that many megabytes of memory and write to it.
+     * @return
+     *
+     * The function first checks if it should succeed or not. If not, return immediatly with an error.
+     * If it should succeed, calculate a latency using a pareto distribution and cap it at 4 seconds.
+     * Let the thread sleep for so long and allocate and write to memory after the sleep.
+     *
+     */
     @GetMapping(value = "doit")
     public ResponseEntity<?> doit(@RequestParam(defaultValue = "0.99") Double reliability,
                                   @RequestParam(defaultValue = "0") Long megabytes) {
