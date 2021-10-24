@@ -19,8 +19,10 @@ import io.micrometer.core.instrument.binder.MeterBinder;
 public class MeteredConnectorCustomizer implements TomcatConnectorCustomizer, MeterBinder  {
     static Logger logger = Logger.getLogger(SampleWebUiApplication.class.getName());
 	
-    private Gauge   threads_active_count;
-    private Gauge   queue_active_count;
+    @SuppressWarnings("unused")
+	private Gauge   threads_active_count;
+    @SuppressWarnings("unused")
+	private Gauge   queue_active_count;
     private ThreadPoolExecutor executor;
     
 	//@Override
