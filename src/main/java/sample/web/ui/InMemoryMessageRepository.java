@@ -16,17 +16,18 @@
 
 package sample.web.ui;
 
-import io.micrometer.core.instrument.Counter;
-import io.micrometer.core.instrument.Gauge;
-import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.binder.MeterBinder;
-import org.springframework.stereotype.Component;
 
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Logger;
+
+import org.springframework.stereotype.Component;
+
+import io.micrometer.core.instrument.Gauge;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.binder.MeterBinder;
+import io.micrometer.core.instrument.Counter;
 
 /**
  * @author Dave Syer
@@ -36,14 +37,15 @@ import java.util.logging.Logger;
  * Used to show how business logic counters and gauges can be used for monitoring and
  * therefore for alerting.
  */
-//@Component
+@Component
 public class InMemoryMessageRepository implements MessageRepository, MeterBinder {
 
     static Logger logger = Logger.getLogger(InMemoryMessageRepository.class.getName());
 
 	private static final AtomicLong counter = new AtomicLong();
 	private ConcurrentMap<Long, Message> messages;
-    private Gauge message_count;
+    @SuppressWarnings("unused")
+	private Gauge message_count;
     private Counter insert_ops;
     private Counter delete_ops;
     private Counter missed_lookups;
@@ -66,7 +68,9 @@ public class InMemoryMessageRepository implements MessageRepository, MeterBinder
 
 		}
 		this.messages.put(id, message);
-		insert_ops.increment();
+		if (insert_ops != null) {
+			insert_ops.increment();
+		}
 		return message;
 	}
 
@@ -83,6 +87,7 @@ public class InMemoryMessageRepository implements MessageRepository, MeterBinder
 	@Override
 	public void deleteMessage(Long id) {
 		this.messages.remove(id);
+		delete_ops.increment();
 	}
 
     @Override

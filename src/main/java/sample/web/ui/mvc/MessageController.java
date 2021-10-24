@@ -16,17 +16,17 @@
 
 package sample.web.ui.mvc;
 
-import javax.validation.Valid;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.bind.annotation.*;
 import sample.web.ui.Message;
 import sample.web.ui.MessageRepository;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -43,7 +43,7 @@ import java.util.logging.Logger;
  * error rates and delays.
  */
 @Controller
-@Timed(quantiles = {0.5, 0.75, 0.95, 0.99})
+@Timed(percentiles = {0.5, 0.75, 0.95, 0.99})
 @RequestMapping("/")
 class MessageController {
 
@@ -58,26 +58,28 @@ class MessageController {
     }
 
 	@GetMapping
+	@Async(value="myThreadPoolExecutor")
 	public ModelAndView list() {
 		Iterable<Message> messages = this.messageRepository.findAll();
 		return new ModelAndView("messages/list", "messages", messages);
 	}
 
 	@GetMapping("{id}")
+	@Async(value="myThreadPoolExecutor")
 	public ModelAndView view(@PathVariable("id") Message message) {
 		return new ModelAndView("messages/view", "message", message);
 	}
 
-    @SuppressWarnings("SameReturnValue")
     @GetMapping(params = "form")
 //	@Timed(value = "long_create_form", longTask = true)
+    @Async(value="myThreadPoolExecutor")
     public String createForm(@ModelAttribute Message message) {
         return "messages/form";
     }
 
 	@PostMapping
 //	@Timed(value = "long_create", longTask = true)
-	public ModelAndView create(@Valid Message message, BindingResult result,
+	public ModelAndView create(@Validated Message message, BindingResult result,
 			RedirectAttributes redirect) {
 		if (result.hasErrors()) {
 			return new ModelAndView("messages/form", "formErrors", result.getAllErrors());
@@ -88,11 +90,13 @@ class MessageController {
 	}
 
 	@RequestMapping("foo")
+	@Async(value="myThreadPoolExecutor")
 	public String foo() {
 		throw new RuntimeException("Expected exception in controller");
 	}
 
 	@GetMapping(value = "delete/{id}")
+	@Async
 	public ModelAndView delete(@PathVariable("id") Long id) {
 		this.messageRepository.deleteMessage(id);
 		Iterable<Message> messages = this.messageRepository.findAll();
@@ -100,6 +104,7 @@ class MessageController {
 	}
 
 	@GetMapping(value = "modify/{id}")
+	@Async(value="myThreadPoolExecutor")
 	public ModelAndView modifyForm(@PathVariable("id") Message message) {
 		return new ModelAndView("messages/form", "message", message);
 	}
@@ -123,7 +128,7 @@ class MessageController {
             return new ResponseEntity<>("FAIL", HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
-        @SuppressWarnings("MismatchedReadAndWriteOfArray") byte[] mem = new byte[(int) (megabytes * 1024 * 1024)];
+        byte[] mem = new byte[(int) (megabytes * 1024 * 1024)];
         for (int i = 0; i < megabytes; i++) {
             mem[i] = (byte) 0xff;
         }

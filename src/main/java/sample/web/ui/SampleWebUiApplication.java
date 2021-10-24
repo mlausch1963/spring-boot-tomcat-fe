@@ -16,20 +16,20 @@
 
 package sample.web.ui;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import java.util.logging.Logger;
+
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.context.embedded.tomcat.TomcatConnectorCustomizer;
-import org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainerFactory;
+// import org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainerFactory;
+import org.springframework.boot.web.embedded.tomcat.ConfigurableTomcatWebServerFactory;
+import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.core.convert.converter.Converter;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.logging.Logger;
+
 
 @SpringBootApplication
-@ComponentScan(basePackages = {"sample.web.ui", "at.lausch.kubernetes.citizen"})
+@ComponentScan(basePackages = {"sample.web.ui", "at.lausch.monitoring"})
 public class SampleWebUiApplication {
 
     static Logger logger = Logger.getLogger(SampleWebUiApplication.class.getName());
@@ -51,7 +51,9 @@ public class SampleWebUiApplication {
             }
         };
     }
-
+    
+   
+    
     public static void main(String[] args) throws Exception {
         SpringApplication.run(SampleWebUiApplication.class, args);
     }
