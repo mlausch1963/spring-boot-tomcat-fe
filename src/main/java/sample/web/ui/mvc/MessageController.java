@@ -50,11 +50,16 @@ class MessageController {
 	@Autowired
     private final MessageRepository messageRepository;
 
+	@Autowired
+	private final SomeClient someClient;
+	
+	
     private final ParetoDistribution paretoGenerator = new ParetoDistribution(0.005, 6);
     static Logger logger = Logger.getLogger(MessageController.class.getName());
 
     public MessageController(MessageRepository messageRepository) {
         this.messageRepository = messageRepository;
+        this.someClient = new SomeClient();
     }
 
 	@GetMapping
@@ -125,9 +130,11 @@ class MessageController {
                                   @RequestParam(defaultValue = "0") Long megabytes) {
         double failureProbability = Math.random();
         if (failureProbability > reliability) {
+            someClient.fail();
             return new ResponseEntity<>("FAIL", HttpStatus.INTERNAL_SERVER_ERROR);
         }
-
+        someClient.success();
+        
         byte[] mem = new byte[(int) (megabytes * 1024 * 1024)];
         for (int i = 0; i < megabytes; i++) {
             mem[i] = (byte) 0xff;

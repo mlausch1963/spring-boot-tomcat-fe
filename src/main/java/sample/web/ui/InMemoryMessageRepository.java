@@ -49,7 +49,8 @@ public class InMemoryMessageRepository implements MessageRepository, MeterBinder
     private Counter insert_ops;
     private Counter delete_ops;
     private Counter missed_lookups;
-
+        
+    
     InMemoryMessageRepository() {
         messages = new ConcurrentHashMap<>();
     }
