@@ -117,14 +117,16 @@ class MessageController {
      *
      * The function first checks if it should succeed or not. If not, return immediatly with an error.
      * If it should succeed, calculate a latency using a pareto distribution and cap it at 4 seconds.
-     * Let the thread sleep for so long and allocate and write to memory after the sleep.
+     * Allocate the memory, dirty it and let the thread sleep for so long, write the to the memory
+     * and and finally return the response.
      *
      */
     @GetMapping(value = "doit")
     @Timed(extraTags = {"api", "debugging"})
-    public ResponseEntity<?> doit(@RequestParam(defaultValue = "0.99") Double reliability,
-                                  @RequestParam(defaultValue = "0") Long megabytes) {
-        double failureProbability = Math.random();
+    public ResponseEntity<?> doit(@RequestParam(defaultValue = "0.95") Double reliability,
+                                  @RequestParam(defaultValue = "30") Long megabytes) {
+        
+    	double failureProbability = Math.random();
         if (failureProbability > reliability) {
             someClient.fail();
             return new ResponseEntity<>("FAIL", HttpStatus.INTERNAL_SERVER_ERROR);
