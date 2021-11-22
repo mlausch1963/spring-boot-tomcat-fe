@@ -124,7 +124,7 @@ class MessageController {
     @GetMapping(value = "doit")
     @Timed(extraTags = {"api", "debugging"})
     public ResponseEntity<?> doit(@RequestParam(defaultValue = "0.95") Double reliability,
-                                  @RequestParam(defaultValue = "30") Long megabytes) {
+                                  @RequestParam(defaultValue = "1") Long megabytes) {
         
     	double failureProbability = Math.random();
         if (failureProbability > reliability) {

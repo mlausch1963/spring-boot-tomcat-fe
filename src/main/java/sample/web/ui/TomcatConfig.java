@@ -34,7 +34,7 @@ public class TomcatConfig implements
 	@Override
 	public void customize(TomcatServletWebServerFactory factory) {
 		// TODO Auto-generated method stub
-    	TomcatConnectorCustomizer c = new BoundResourcesExecutor();
+    	TomcatConnectorCustomizer c = new CustomizeBoundResourcesExecutor();
     	factory.addConnectorCustomizers(c);
 	}
 }
