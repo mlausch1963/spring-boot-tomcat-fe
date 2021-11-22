@@ -33,13 +33,17 @@ import org.springframework.core.convert.converter.Converter;
 public class SampleWebUiApplication {
 
     static Logger logger = Logger.getLogger(SampleWebUiApplication.class.getName());
-
+    
+    
+/*    @Bean
+    MessageMetrics messageMetrics() {
+    	return new MessageMetrics(this.messageRepository());
+    }
+*/    
     @Bean
     public MessageRepository messageRepository()
     {
-        InMemoryMessageRepository repo = new InMemoryMessageRepository();
-        logger.warning(String.format("Created new msg repo: %s", repo));
-        return repo;
+        return new InMemoryMessageRepository();
     }
 
     @Bean

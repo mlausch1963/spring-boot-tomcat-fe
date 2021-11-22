@@ -63,14 +63,12 @@ class MessageController {
     }
 
 	@GetMapping
-	@Async(value="myThreadPoolExecutor")
 	public ModelAndView list() {
 		Iterable<Message> messages = this.messageRepository.findAll();
 		return new ModelAndView("messages/list", "messages", messages);
 	}
 
 	@GetMapping("{id}")
-	@Async(value="myThreadPoolExecutor")
 	public ModelAndView view(@PathVariable("id") Message message) {
 		return new ModelAndView("messages/view", "message", message);
 	}
@@ -95,13 +93,11 @@ class MessageController {
 	}
 
 	@RequestMapping("foo")
-	@Async(value="myThreadPoolExecutor")
 	public String foo() {
 		throw new RuntimeException("Expected exception in controller");
 	}
 
 	@GetMapping(value = "delete/{id}")
-	@Async
 	public ModelAndView delete(@PathVariable("id") Long id) {
 		this.messageRepository.deleteMessage(id);
 		Iterable<Message> messages = this.messageRepository.findAll();
@@ -109,7 +105,6 @@ class MessageController {
 	}
 
 	@GetMapping(value = "modify/{id}")
-	@Async(value="myThreadPoolExecutor")
 	public ModelAndView modifyForm(@PathVariable("id") Message message) {
 		return new ModelAndView("messages/form", "message", message);
 	}
@@ -126,6 +121,7 @@ class MessageController {
      *
      */
     @GetMapping(value = "doit")
+    @Timed(extraTags = {"api", "debugging"})
     public ResponseEntity<?> doit(@RequestParam(defaultValue = "0.99") Double reliability,
                                   @RequestParam(defaultValue = "0") Long megabytes) {
         double failureProbability = Math.random();
@@ -155,5 +151,10 @@ class MessageController {
             mem[i] = 0x00;
         }
         return new ResponseEntity<>("OK", HttpStatus.OK);
+    }
+    
+    @GetMapping("favicon.ico")
+    @ResponseBody
+    void returnNoFavicon() {
     }
 }

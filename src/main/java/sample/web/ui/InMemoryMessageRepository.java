@@ -22,11 +22,15 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Logger;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Metrics;
 import io.micrometer.core.instrument.binder.MeterBinder;
+import io.micrometer.prometheus.PrometheusMeterRegistry;
 import io.micrometer.core.instrument.Counter;
 
 /**
@@ -37,7 +41,6 @@ import io.micrometer.core.instrument.Counter;
  * Used to show how business logic counters and gauges can be used for monitoring and
  * therefore for alerting.
  */
-@Component
 public class InMemoryMessageRepository implements MessageRepository, MeterBinder {
 
     static Logger logger = Logger.getLogger(InMemoryMessageRepository.class.getName());
@@ -49,10 +52,11 @@ public class InMemoryMessageRepository implements MessageRepository, MeterBinder
     private Counter insert_ops;
     private Counter delete_ops;
     private Counter missed_lookups;
-        
+    
     
     InMemoryMessageRepository() {
         messages = new ConcurrentHashMap<>();
+        bindTo(Metrics.globalRegistry);
     }
 
     @Override
@@ -89,6 +93,10 @@ public class InMemoryMessageRepository implements MessageRepository, MeterBinder
 	public void deleteMessage(Long id) {
 		this.messages.remove(id);
 		delete_ops.increment();
+	}
+	
+	public int size() {
+		return messages.size();
 	}
 
     @Override
