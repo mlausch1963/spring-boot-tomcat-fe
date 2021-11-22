@@ -22,16 +22,12 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Logger;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 
+import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.Metrics;
 import io.micrometer.core.instrument.binder.MeterBinder;
-import io.micrometer.prometheus.PrometheusMeterRegistry;
-import io.micrometer.core.instrument.Counter;
 
 /**
  * @author Dave Syer
@@ -40,14 +36,36 @@ import io.micrometer.core.instrument.Counter;
  * A message repo, which also has some statistics, implemented as micrometer metrics.
  * Used to show how business logic counters and gauges can be used for monitoring and
  * therefore for alerting.
+ * 
+ * Implementing the "MeterBinder" interface with the bindTo function, initializes the 
+ * metrics. 
+ * This class holds 2 examples of metrics, Counter and Gauges to demonatrate the 
+ * difference in implementation and usage.
+ * 
+ * "Counter" is used for counting events, the only important function is the increment() 
+ * function. It just increments the counter (thread-safe) by one, when passing a double 
+ * parameter, it adds the parameter. Be careful to only increment a counter, never pass a
+ * negative value. Counters are monotone growing. 
+ * 
+ * "Gauge" is just a number, like the number of elements in the repository. Or the state 
+ * of a healthcheck. The value of a gauge can go up and down. Best practice to implement 
+ * a gauge is to fetch the value from the real thing, in this example it is the number 
+ * of elements in he repository. Threadsafeness is left as an exercise for the reader.
+ * 
+ * Because the class is annotated as a "Component" the bindTo function is called 
+ * automagically by the spring boot machinery. It is also possible to get the global registry
+ * https://micrometer.io/docs/concepts#_global_registry
+ * 
  */
-public class InMemoryMessageRepository implements MessageRepository, MeterBinder {
+@Component
+public class InMemoryMessageRepository implements MessageRepository , MeterBinder {
 
     static Logger logger = Logger.getLogger(InMemoryMessageRepository.class.getName());
 
 	private static final AtomicLong counter = new AtomicLong();
 	private ConcurrentMap<Long, Message> messages;
-    @SuppressWarnings("unused")
+    
+	@SuppressWarnings("unused")
 	private Gauge message_count;
     private Counter insert_ops;
     private Counter delete_ops;
@@ -56,7 +74,6 @@ public class InMemoryMessageRepository implements MessageRepository, MeterBinder
     
     InMemoryMessageRepository() {
         messages = new ConcurrentHashMap<>();
-        bindTo(Metrics.globalRegistry);
     }
 
     @Override

@@ -18,6 +18,7 @@ package sample.web.ui;
 
 import java.util.logging.Logger;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 // import org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainerFactory;
@@ -34,29 +35,20 @@ public class SampleWebUiApplication {
 
     static Logger logger = Logger.getLogger(SampleWebUiApplication.class.getName());
     
+    @Autowired
+    MessageRepository repository;
     
-/*    @Bean
-    MessageMetrics messageMetrics() {
-    	return new MessageMetrics(this.messageRepository());
-    }
-*/    
-    @Bean
-    public MessageRepository messageRepository()
-    {
-        return new InMemoryMessageRepository();
-    }
 
     @Bean
     public Converter<String, Message> messageConverter() {
         return new Converter<String, Message>() {
             @Override
             public Message convert(String id) {
-                return messageRepository().findMessage(Long.valueOf(id));
+                return repository.findMessage(Long.valueOf(id));
             }
         };
     }
     
-   
     
     public static void main(String[] args) throws Exception {
         SpringApplication.run(SampleWebUiApplication.class, args);

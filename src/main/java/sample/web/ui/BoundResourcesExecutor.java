@@ -17,9 +17,12 @@ import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.binder.MeterBinder;
-
+/* 
+ * This class is used as a special purpose executor. See comments in 
+ * the class TomcatConfig, why we are doing this.  
+ */
 @Component
-public class MeteredConnectorCustomizer implements TomcatConnectorCustomizer, MeterBinder, RejectedExecutionHandler  {
+public class BoundResourcesExecutor implements TomcatConnectorCustomizer, MeterBinder, RejectedExecutionHandler  {
     static Logger logger = Logger.getLogger(SampleWebUiApplication.class.getName());
 	
     @SuppressWarnings("unused")
@@ -52,27 +55,27 @@ public class MeteredConnectorCustomizer implements TomcatConnectorCustomizer, Me
 	@Override
 	public void bindTo(MeterRegistry registry) {
 		
-		queueActiveCount = Gauge.builder("tomcat_queue_active_count", this, MeteredConnectorCustomizer::getQueueActive)
+		queueActiveCount = Gauge.builder("tomcat_queue_active_count", this, BoundResourcesExecutor::getQueueActive)
 				.baseUnit("count")
 				.description("currently busy queue entry")
 				.register(registry);
 
-		queueCapacityCount = Gauge.builder("tomcat_queue_capacity_count", this, MeteredConnectorCustomizer::getQueueCapacity)
+		queueCapacityCount = Gauge.builder("tomcat_queue_capacity_count", this, BoundResourcesExecutor::getQueueCapacity)
 				.baseUnit("count")
 				.description("capacity of queue")
 				.register(registry);
 		
-		threadsActiveCount = Gauge.builder("tomcat_threads_active_count", this, MeteredConnectorCustomizer::getActiveCount)
+		threadsActiveCount = Gauge.builder("tomcat_threads_active_count", this, BoundResourcesExecutor::getActiveCount)
                 .baseUnit("count")
                 .description("currently busy threads")
                 .register(registry);
 		
-		threadPoolCoreCount = Gauge.builder("tomcat_threads_core_count", this, MeteredConnectorCustomizer::getCoreCount)
+		threadPoolCoreCount = Gauge.builder("tomcat_threads_core_count", this, BoundResourcesExecutor::getCoreCount)
                 .baseUnit("count")
                 .description("threads pool core size")
                 .register(registry);
 		
-		threadPoolMaxCount = Gauge.builder("tomcat_threads_max_count", this, MeteredConnectorCustomizer::getMaxCount1)
+		threadPoolMaxCount = Gauge.builder("tomcat_threads_max_count", this, BoundResourcesExecutor::getMaxCount1)
                 .baseUnit("count")
                 .description("threads pool max size")
                 .register(registry);

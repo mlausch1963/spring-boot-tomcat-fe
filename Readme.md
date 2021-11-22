@@ -8,14 +8,9 @@ Example Web frontend for Kubernetes/Openshift. It contains
 
  - Prometheus monitoring.
 
-For tomcat:
 
-Using a connectorcustomizer to manipulate the Executor does not work
 
-  - When the customizer is called, there is no executor
-  - You cannot set a custom executor
-
-So we use a spring boot event to fix the executor after the embedded container has been initialized.
+See https://spring.io/blog/2018/03/16/micrometer-spring-boot-2-s-new-application-metrics-collector how to use micrometer in Spring Boot 2.
 
 
 
