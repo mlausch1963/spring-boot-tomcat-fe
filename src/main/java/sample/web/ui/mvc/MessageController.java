@@ -74,14 +74,12 @@ class MessageController {
 	}
 
     @GetMapping(params = "form")
-//	@Timed(value = "long_create_form", longTask = true)
     @Async(value="myThreadPoolExecutor")
     public String createForm(@ModelAttribute Message message) {
         return "messages/form";
     }
 
 	@PostMapping
-//	@Timed(value = "long_create", longTask = true)
 	public ModelAndView create(@Validated Message message, BindingResult result,
 			RedirectAttributes redirect) {
 		if (result.hasErrors()) {

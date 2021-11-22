@@ -1,0 +1,154 @@
+= Example Web frontend for Kubernetes
+:source-highlighter: ruby
+
+
+It contains
+
+ - A second Executor for the actuator endpoints. Prevents starving of
+   healthcheck and monitoring endpoints
+
+ - Implementation of a health indicator which returns 500 to healthchecks,
+   throttling incoming traffic.
+
+ - Prometheus monitoring.
+
+== Implementation Steps
+
+=== Basic Setup
+
+To start with micrometer, it's enough to use the  microemeter starter
+Add the micrometer starter to the `pom.xml` file like this:
+
+[source#pom.xml-micrometer,xml]
+----
+		<dependency>
+			<groupId>io.micrometer</groupId>
+			<artifactId>micrometer-registry-prometheus</artifactId>
+			<version>${micrometer.version}</version>
+		</dependency>
+----
+
+To enable the prometheus scrape point, which is used to actually get the metrics out of the application with prometheus, you also need to add the actuator starter and the prometheus registry
+
+[source@pom.xml-prometheus,xml]
+----
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
+
+		<!-- https://mvnrepository.com/artifact/io.micrometer/micrometer-registry-prometheus -->
+		<dependency>
+			<groupId>io.micrometer</groupId>
+			<artifactId>micrometer-registry-prometheus</artifactId>
+			<version>${micrometer.version}</version>
+		</dependency>
+----
+
+The next step is to annotate the controller class. In this example this is
+
+[source#MessageController.java-toplevel,java]
+----
+    @Controller
+    @Timed(percentiles = {0.5, 0.75, 0.95, 0.99})
+    @RequestMapping("/")
+    class MessageController {
+    }
+
+----
+
+If you want to add additional labels to a metric for an http endpoint, you can follow the `doit()` function example:
+
+[source#MessageController.java-doit,java]
+----
+    @GetMapping(value = "doit")
+    @Timed(extraTags = {"api", "debugging"})
+    public ResponseEntity<?> doit(@RequestParam(defaultValue = "0.95") Double reliability,
+                                  @RequestParam(defaultValue = "1") Long megabytes) {
+
+----
+
+the `extraArgs` parameter of the `@Timed` annotation add a label `api` with the value `debugging`.
+
+In the `application.properties` file add the following properties:
+
+[source#application.properties-base1, ini]
+----
+  # threads scheduled for killing, are kept alive for this time, until they are 
+  # really reaped. this prevents the system from killing of threads immediatly 
+  # after they ran and put them back in the pool instead.
+  server.tomcat.executor.keepalive-millisecs: 5000
+  management.endpoints.web.exposure.include=health,info,prometheus
+
+  # put all the health and prometheus endoints behind /-/ which can easily be 
+  # filtered by WAFs and redirect rules. 
+  management.endpoints.web.base-path=/-
+----
+
+After these steps the metrics are available at the /-/prometheus local path.
+
+And you are done with the first step. 
+
+=== Robust Metric handling
+It advisable to serve the health and monitoring actuator endpoints from a different port. This allocates a second executor with its own input queue and thread pool, preventing metric and health requests to be queued and served after all the already queue requests are handled. This may timeout the readyness probe fromt he kubelet. 
+
+Add the following to the `application.properties` file
+
+[source#/spring-boot-tomcat-fe/src/main/resources/application.properties, ini]
+----
+# the second endpoint for metrics, so they don't interfere with 
+# normal request handling. 
+management.server.port = 3031
+----
+
+You may also disable authentication for the management port:
+
+[source#/spring-boot-tomcat-fe/src/main/resources/application.properties, ini]
+----
+# we don't need a password for the management port. it's not reachable
+# from the outside and metrics, as well as healthchecks must not contain
+# PII data. 
+management.security.enabled = false
+----
+
+Now that the management port is running on another executor you want to export the performance metrics from the main executor, so that you can monitor the `fullness` of the server and alert if there are too many rejected requests.
+
+=== Monitor The Executor
+
+For this you need to do the following:
+
+Configure a connector customizer which allocates the executor with bounded queues (again for reliability) and instrument the executor for monitoring. See classes  CustomizeBoundResourcesExecutor and TomcatConfig how to do this.
+
+
+
+== Classes
+
+This are all the classes implementing bits and pieces for monitoring. The "normal" classes for the MVC example are not desctibed here. The application is a simple message store, not persistent, allowing the creation, deletion and modification of messages.
+
+=== CustomizeBoundResourcesExecutor
+
+Allocates a bounded resources executor and register counter and gauges.
+
+=== ExecutorHealthIndicator
+
+Healthcheck which also checks the executor metrics for overflow. If the thread and queue counts exceed maximum values, the health indicator is set to false. This could be used for the readyness probe to signal the overload condition, causing the load balancer to stop sending traffic to the pod
+
+=== ExecutorMetrics
+
+
+=== InMemoryMessageRepository
+
+Simple repo for holding messages. Also implements business metrics, messages created, deleted, modified and so on.
+
+=== TomcatConfig
+
+Define the customization to use a special Executor and use CustomizeBoundResourcesExecutor to create it and set it up.
+
+
+
+
+
+See https://spring.io/blog/2018/03/16/micrometer-spring-boot-2-s-new-application-metrics-collector how to use micrometer in Spring Boot 2.
+
+https://stackoverflow.com/questions/17710701/how-to-restrict-access-to-certain-urls-a-specific-port
