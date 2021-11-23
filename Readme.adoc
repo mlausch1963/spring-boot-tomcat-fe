@@ -1,5 +1,5 @@
 = Example Web frontend for Kubernetes
-:source-highlighter: ruby
+:source-highlighter: rouge
 
 
 It contains
@@ -75,30 +75,30 @@ In the `application.properties` file add the following properties:
 
 [source#application.properties-base1, ini]
 ----
-  # threads scheduled for killing, are kept alive for this time, until they are 
-  # really reaped. this prevents the system from killing of threads immediatly 
+  # threads scheduled for killing, are kept alive for this time, until they are
+  # really reaped. this prevents the system from killing of threads immediatly
   # after they ran and put them back in the pool instead.
   server.tomcat.executor.keepalive-millisecs: 5000
   management.endpoints.web.exposure.include=health,info,prometheus
 
-  # put all the health and prometheus endoints behind /-/ which can easily be 
-  # filtered by WAFs and redirect rules. 
+  # put all the health and prometheus endoints behind /-/ which can easily be
+  # filtered by WAFs and redirect rules.
   management.endpoints.web.base-path=/-
 ----
 
 After these steps the metrics are available at the /-/prometheus local path.
 
-And you are done with the first step. 
+And you are done with the first step.
 
 === Robust Metric handling
-It advisable to serve the health and monitoring actuator endpoints from a different port. This allocates a second executor with its own input queue and thread pool, preventing metric and health requests to be queued and served after all the already queue requests are handled. This may timeout the readyness probe fromt he kubelet. 
+It advisable to serve the health and monitoring actuator endpoints from a different port. This allocates a second executor with its own input queue and thread pool, preventing metric and health requests to be queued and served after all the already queue requests are handled. This may timeout the readyness probe fromt he kubelet.
 
 Add the following to the `application.properties` file
 
 [source#/spring-boot-tomcat-fe/src/main/resources/application.properties, ini]
 ----
-# the second endpoint for metrics, so they don't interfere with 
-# normal request handling. 
+# the second endpoint for metrics, so they don't interfere with
+# normal request handling.
 management.server.port = 3031
 ----
 
@@ -108,7 +108,7 @@ You may also disable authentication for the management port:
 ----
 # we don't need a password for the management port. it's not reachable
 # from the outside and metrics, as well as healthchecks must not contain
-# PII data. 
+# PII data.
 management.security.enabled = false
 ----
 
