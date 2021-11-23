@@ -19,7 +19,7 @@ It contains
 To start with micrometer, it's enough to use the  microemeter starter
 Add the micrometer starter to the `pom.xml` file like this:
 
-[source#pom.xml-micrometer,xml]
+[source#pom_micrometer,xml]
 ----
 		<dependency>
 			<groupId>io.micrometer</groupId>
@@ -30,9 +30,8 @@ Add the micrometer starter to the `pom.xml` file like this:
 
 To enable the prometheus scrape point, which is used to actually get the metrics out of the application with prometheus, you also need to add the actuator starter and the prometheus registry
 
-[source@pom.xml-prometheus,xml]
+[source@pom_prometheus,xml]
 ----
-
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-actuator</artifactId>
