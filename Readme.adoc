@@ -30,7 +30,7 @@ Add the micrometer starter to the `pom.xml` file like this:
 
 To enable the prometheus scrape point, which is used to actually get the metrics out of the application with prometheus, you also need to add the actuator starter and the prometheus registry
 
-[source@pom_prometheus,xml]
+[source#pom_prometheus,xml]
 ----
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
